@@ -7,7 +7,7 @@
 BUILD_BROKEN_ELF_PREBUILT_PRODUCT_COPY_FILES := true
 BUILD_BROKEN_DUP_RULES := true
 
-DEVICE_PATH := device/nothing/Tetris
+DEVICE_PATH := device/infinix/X6857
 
 # A/B
 AB_OTA_UPDATER := true
@@ -39,10 +39,10 @@ IGNORE_PREFER32_ON_DEVICE := true
 
 # Bootloader
 TARGET_NO_BOOTLOADER := true
-TARGET_BOOTLOADER_BOARD_NAME := Tetris
+TARGET_BOOTLOADER_BOARD_NAME := X6857
 
 # Display
-TARGET_SCREEN_DENSITY := 420
+TARGET_SCREEN_DENSITY := 480
 
 # Kernel
 BOARD_BOOT_HEADER_VERSION := 4
@@ -52,12 +52,14 @@ BOARD_KERNEL_BASE := 0x3fff8000
 BOARD_KERNEL_TAGS_OFFSET := 0x07c88000
 BOARD_KERNEL_OFFSET := 0x00008000
 BOARD_RAMDISK_OFFSET := 0x26f08000
-BOARD_KERNEL_CMDLINE += androidboot.serialconsole=0
 BOARD_KERNEL_CMDLINE := bootopt=64S3,32N2,64N2
+BOARD_KERNEL_CMDLINE += androidboot.serialconsole=0
 BOARD_KERNEL_CMDLINE += rcu_nocbs=all rcutree.enable_rcu_lazy=1
+BOARD_KERNEL_CMDLINE += androidboot.selinux=permissive
 BOARD_BOOTCONFIG += androidboot.init_fatal_reboot_target=recovery
+BOARD_BOOTCONFIG += androidboot.selinux=permissive
 BOARD_KERNEL_PAGESIZE := 4096
-BOARD_DTB_OFFSET := 0x1BF8040
+BOARD_DTB_OFFSET := 0x07c88000
 BOARD_INCLUDE_DTB_IN_BOOTIMG := true
 BOARD_RAMDISK_USE_LZ4 := true
 BOARD_KERNEL_SEPARATED_DTBO := true
@@ -70,7 +72,7 @@ BOARD_MKBOOTIMG_ARGS += --ramdisk_offset $(BOARD_RAMDISK_OFFSET)
 BOARD_MKBOOTIMG_ARGS += --tags_offset $(BOARD_KERNEL_TAGS_OFFSET)
 BOARD_MKBOOTIMG_INIT_ARGS += --header_version $(BOARD_INIT_BOOT_HEADER_VERSION)
 
-include device/nothing/Tetris-kernel/BoardConfigKernel.mk
+include device/infinix/X6857-kernel/BoardConfigKernel.mk
 
 # HIDL
 DEVICE_FRAMEWORK_COMPATIBILITY_MATRIX_FILE := $(DEVICE_PATH)/configs/vintf/compatibility_matrix.xml
@@ -124,7 +126,7 @@ TARGET_BOARD_PLATFORM := mt6878
 
 # Properties
 TARGET_SYSTEM_PROP += $(DEVICE_PATH)/configs/props/system.prop
-TARGET_PRODUCT_PROP += device/nothing/Tetris/configs/props/product.prop
+TARGET_PRODUCT_PROP += $(DEVICE_PATH)/configs/props/product.prop
 
 # Recovery
 BOARD_INCLUDE_RECOVERY_RAMDISK_IN_VENDOR_BOOT := true
@@ -136,11 +138,11 @@ TARGET_RECOVERY_UI_MARGIN_HEIGHT := 100
 TARGET_USERIMAGES_USE_F2FS := true
 
 # Security patch level
-VENDOR_SECURITY_PATCH := 2025-02-08
+VENDOR_SECURITY_PATCH := 2026-04-01
 
 # SELinux
--include device/nothing/Tetris/sepolicy/mtk/SEPolicy.mk
--include device/nothing/Tetris/sepolicy/prop/SEPolicy.mk
+-include $(DEVICE_PATH)/sepolicy/mtk/SEPolicy.mk
+-include $(DEVICE_PATH)/sepolicy/prop/SEPolicy.mk
 
 BOARD_VENDOR_SEPOLICY_DIRS += $(DEVICE_PATH)/sepolicy/vendor
 SYSTEM_EXT_PRIVATE_SEPOLICY_DIRS += $(DEVICE_PATH)/sepolicy/private
@@ -209,4 +211,4 @@ WIFI_FEATURE_HOSTAPD_11AX := true
 WIFI_FEATURE_SUPPLICANT_11AX := true
 
 # Inherit the proprietary files
-include vendor/nothing/Tetris/BoardConfigVendor.mk
+include vendor/infinix/X6857/BoardConfigVendor.mk

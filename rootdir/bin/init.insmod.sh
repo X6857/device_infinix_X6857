@@ -32,7 +32,7 @@ if [ -f $cfg_file ]; then
       "enable") echo 1 > $arg ;;
       "modprobe")
         insmod_arg=${arg}
-        for partition in system_dlkm vendor
+        for partition in system_dlkm vendor vendor_dlkm
         do
           case ${insmod_arg} in
             "-b *" | "-b")

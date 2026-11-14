@@ -1,100 +1,78 @@
 # MTK platform .rc configure
 
-import /vendor/etc/init/hw/init.cgroup.rc
-import /vendor/etc/init/hw/init.connectivity.rc
-import /vendor/etc/init/hw/init.mt6878.power.rc
-import /vendor/etc/init/hw/init.mt6878.usb.rc
+import ${ro.vendor.rc}init.cgroup.rc
+import ${ro.vendor.rc}init.connectivity.rc
+import ${ro.vendor.rc}init.mt6878.usb.rc
 import /vendor/etc/init/hw/init.project.rc
 import /system_ext/etc/init/hw/init.aee.rc
 import /FWUpgradeInit.rc
 import /vendor/etc/init/hw/init.aee.rc
-import /vendor/etc/init/hw/init.volte.rc
-import /vendor/etc/init/hw/init.mal.rc
-import /vendor/etc/init/hw/init.sensor_2_0.rc
-# #ifdef NT_EDIT
-# add to new_feature BEE-142
-import /vendor/etc/init/hw/init.board_id.rc
-# #endif /* NT_EDIT */
+import ${ro.vendor.rc}init.volte.rc
+import ${ro.vendor.rc}init.mal.rc
+import ${ro.vendor.rc}${ro.vendor.init.sensor.rc}
 
 # init.modem.rc must be the LAST rc file because vold.post_fs_data_done is set in it
-import /vendor/etc/init/hw/init.modem.rc
+import ${ro.vendor.rc}init.modem.rc
 # *** DO NOT import the new rc file after this line ***
 
 on early-init
     write /proc/bootprof "INIT:early-init"
 
+    # initialize vendor.all.modules.ready to 1 here to prevent NOT GKI project blocked
+    setprop vendor.all.modules.ready 1
+
+# Keep debugfs mounted in non-user builds
+on early-init && property:ro.build.type=eng
+    mount debugfs debugfs /sys/kernel/debug
+    chmod 0755 /sys/kernel/debug
+    write /sys/power/pm_print_times 0
+    setprop persist.dbg.keep_debugfs_mounted true
+
+on early-init && property:ro.build.type=userdebug
+    mount debugfs debugfs /sys/kernel/debug
+    chmod 0755 /sys/kernel/debug
+    setprop persist.dbg.keep_debugfs_mounted true
+
 on init
     write /proc/bootprof "INIT:init"
+
+    # Support legacy paths
+    symlink /sdcard /mnt/sdcard
 
     # if primary storage is physical, set ro.vold.primary_physical to 1
     # setprop ro.vold.primary_physical 1
 
-    # Property used for sku specific sysconfig and permissions
-    setprop ro.boot.product.hardware.sku ${ro.boot.hardware.sku}
+    mkdir /mnt/cd-rom 0000 system system
+#MD:add TBYHSSL-43 for tranfs by xiaoxiang.xiong 20210705 start
+    mkdir /tranfs 0771 system system
+    restorecon_recursive /tranfs
+#MD:add TBYHSSL-43 for tranfs by xiaoxiang.xiong 20210705 end
 
 # change lk_env permission
     chown root system /proc/lk_env
     chmod 0660 /proc/lk_env
 
-# Assign reasonable ceiling values for socket rcv/snd buffers
-    write /proc/sys/net/core/rmem_max  8388608
-    write /proc/sys/net/core/wmem_max  8388608
+# increase sysctl_rmem_max and sysctl_wmem_max values to 2M
+    write /proc/sys/net/core/wmem_max 8388608
+    write /proc/sys/net/core/rmem_max 8388608
 
-    # Assign TCP write/read memory size.
-    write /proc/sys/net/ipv4/tcp_rmem "2097152 4194304 8388608"
-    write /proc/sys/net/ipv4/tcp_wmem "262144 524288 8388608"
+# update cpus for cpuset cgroup
+    write /dev/cpuset/foreground/cpus 0-7
+    write /dev/cpuset/foreground/boost/cpus 0-7
+    write /dev/cpuset/background/cpus 0-3
+    write /dev/cpuset/system-background/cpus 0-3
+    write /dev/cpuset/top-app/cpus 0-7
 
-#NT_EDIT BEE-447 add for aac richtap vibration begin
-    chmod 0666 proc/haptic/f0
-    chown system system proc/haptic/f0
-#NT_EDIT BEE-447 add for aac richtap vibration end
+# dex2oat_threads add by dewang.tan 20231227 start
+    setprop persist.vendor.powerhal.dex2oat_threads 0
+# dex2oat_threads add by dewang.tan 20231227 end
 
 on late-init
     write /proc/bootprof "INIT:late-init"
+# enable rcu_expedited
+    write /sys/kernel/rcu_expedited 1
 
 # mount different fs start
-
-on charger
-    chmod 0660 /dev/spm
-    chown system system /dev/spm
-    start spm_script
-    chmod 0666 /dev/kmsg
-    chmod 0775 /mnt/vendor
-    mkdir /mnt/vendor/nvcfg
-    mount ext4 /dev/block/by-name/nvcfg /mnt/vendor/nvcfg rw wait
-    chown system system /mnt/vendor/nvcfg
-    chmod 0771 /mnt/vendor/nvcfg
-    restorecon_recursive /mnt/vendor/nvcfg
-    write /sys/devices/platform/battery_meter/FG_daemon_log_level 7
-    write /sys/bus/platform/devices/battery/FG_daemon_log_level 7
-    # Permissions for System Server and daemons.
-    chown system system /sys/power/autosleep
-    chown system system /sys/power/state
-    chown system system /sys/power/wakeup_count
-    chown radio wakelock /sys/power/wake_lock
-    chown radio wakelock /sys/power/wake_unlock
-    chmod 0660 /sys/power/state
-    chmod 0660 /sys/power/wake_lock
-    chmod 0660 /sys/power/wake_unlock
-    chmod 0660 /sys/power/wakeup_count
-    write /sys/power/pm_freeze_timeout 2000
-
-    # gauge symbolic
-    symlink /sys/devices/platform/soc/11280000.i2c/i2c-5/5-0034/11280000.i2c:mt6375@34:mtk-gauge /dev/gauge
-
-    start fuelgauged
-    start fuelgauged_nvram
-
-    chown system system /sys/class/leds/lcd-backlight/brightness
-    chown system system /sys/class/leds/lcd-backlight1/brightness
-    chown system system /sys/class/leds/red/brightness
-    chown system system /sys/class/leds/green/brightness
-
-    start vendor.light-default
-    start vendor.health-default
-
-    # Stop bootprof
-    write /proc/bootprof "0"
 
 on early-fs
     write /proc/bootprof "INIT:early-fs"
@@ -103,32 +81,40 @@ on fs
 
     # mount fstab
     write /proc/bootprof "INIT:Mount_START"
+    write /sys/kernel/tracing/trace_marker "B|1|Mount"
     mount_all --early
+    exec /system/bin/tune2fs -O has_journal -u 10010 -r 4096 /dev/block/by-name/userdata
+    write /sys/kernel/tracing/trace_marker "E"
     write /proc/bootprof "INIT:Mount_END"
+
+on fs
+
+   mount iso9660 loop@/vendor/etc/iAmCdRom.iso /mnt/cd-rom ro
 
 on late-fs
     write /proc/bootprof "INIT:late-fs"
+    wait_for_prop hwservicemanager.ready "true"
 
     write /proc/bootprof "INIT:Mount_START --late"
+    write /sys/kernel/tracing/trace_marker "B|1|Mount late"
     mount_all --late
+    write /sys/kernel/tracing/trace_marker "E"
     write /proc/bootprof "INIT:Mount_END --late"
 
 on post-fs
     write /proc/bootprof "INIT:post-fs"
 
+    # Support legacy paths
+    symlink /sdcard /storage/sdcard0
+
     #change permissions for mediaserver
     chown root media /proc/clkmgr/mipi_test
-
-    #change permission for ged_smart_boost
-    chmod 0664 /sys/module/ged/parameters/ged_smart_boost
-    chown system system /sys/module/ged/parameters/ged_smart_boost
 
     #change permission for engineer mode
     chown radio system /proc/clkmgr/pll_test
     chown radio system /proc/clkmgr/pll_fsel
     chmod 0664 /proc/clkmgr/pll_test
     chmod 0664 /proc/clkmgr/pll_fsel
-
     #change permission for engineer mode
     chown radio system /proc/freqhopping/dramc
     chown radio system /proc/freqhopping/dumpregs
@@ -152,7 +138,7 @@ on post-fs-data
     write /proc/bootprof "INIT:post-fs-data"
     wait_for_prop vendor.all.modules.ready 1
     write /proc/bootprof "modprobe: Load_Module_DONE"
-    
+
     # Disable watermark boost
     write /proc/sys/vm/watermark_boost_factor 0
 
@@ -167,9 +153,25 @@ on post-fs-data
 
     # boot time fs tune
     write /sys/block/mmcblk0/queue/iostats 0
+    write /sys/block/mmcblk0/queue/read_ahead_kb 2048
     write /sys/block/mmcblk0/queue/nr_requests 256
     write /sys/block/sdc/queue/iostats 0
+    write /sys/block/sdc/queue/read_ahead_kb 2048
     write /sys/block/sdc/queue/nr_requests 256
+    write /sys/block/dm-0/queue/read_ahead_kb 2048
+    write /sys/block/dm-1/queue/read_ahead_kb 2048
+    write /sys/block/dm-2/queue/read_ahead_kb 2048
+    write /sys/block/dm-3/queue/read_ahead_kb 2048
+    write /sys/block/dm-4/queue/read_ahead_kb 2048
+    write /sys/block/dm-5/queue/read_ahead_kb 2048
+
+#SPD: modify cpu shares at 20240115 start
+    write /dev/cpuctl/top-app/cpu.shares 5120
+    write /dev/cpuctl/foreground/cpu.shares 4196
+#SPD: modify cpu shares at 20240115 start
+#SPD: add for control dex2oat cpu by fan.feng1 20230619 start
+    write /dev/cpuctl/dex2oat/cpu.shares 512
+#SPD: add for control dex2oat cpu by fan.feng1 20230619 end
 
     chown system system /mnt/vendor/nvcfg
     chmod 0771 /mnt/vendor/nvcfg
@@ -177,16 +179,16 @@ on post-fs-data
     chown system system /mnt/vendor/nvcfg/fg
     chown system system /mnt/vendor/nvcfg/fg/old_fg_data
     chown system system /mnt/vendor/nvcfg/fg/car_tune_value
+#MD:add TBYHSSL-43 for tranfs by xiaoxiang.xiong 20210705 start
+    chown system system /tranfs
+    chmod 0777 /tranfs
+#MD:add TBYHSSL-43 for tranfs by xiaoxiang.xiong 20210705 end
 
     # create basic filesystem structure
     # We chown/chmod /mnt/vendor/nvdata again so because mount is run as root + defaults
     chown root system /mnt/vendor/nvdata
     chmod 0771 /mnt/vendor/nvdata
     mkdir /mnt/vendor/nvdata/media 0771 media audio
-
-    # AudioDump
-    mkdir /data/vendor/audiohal 0771 system audio
-    mkdir /data/vendor/audiohal/audio_param 0771 system audio
 
     #Create cct mount point
     mkdir /mnt/vendor/cct
@@ -252,30 +254,6 @@ on post-fs-data
     chmod 0775 /vendor/xbin/MPED
     chmod 0666 /dev/gps_emi
 
-#ifdef NT_EDIT
-#BEE-50 :add TP node permission
-    chown system system /proc/touchpanel/fts_diff_data_mode
-    chmod 0666 /proc/touchpanel/fts_diff_data_mode
-    chown system system /proc/touchpanel/fod_mode
-    chmod 0666 /proc/touchpanel/fod_mode
-    chown system system /proc/touchpanel/fts_gesture_mode
-    chmod 0666 /proc/touchpanel/fts_gesture_mode
-    chown system system /proc/touchpanel/fts_gesture_point
-    chmod 0666 /proc/touchpanel/fts_gesture_point
-    chown system system /proc/touchpanel/fts_edge_mode
-    chmod 0666 /proc/touchpanel/fts_edge_mode
-    chown system system /proc/touchpanel/TP_charger_flags
-    chmod 0666 /proc/touchpanel/TP_charger_flags
-    chown system system /proc/touchpanel/fts_pocket_mode
-    chmod 0666 /proc/touchpanel/fts_pocket_mode
-    chown system system /proc/touchpanel/fts_game_mode
-    chmod 0666 /proc/touchpanel/fts_game_mode
-    chown system system /sys/devices/platform/soc/11c22000.i2c/i2c-2/2-0038/fts_gesture_single_tap_pressed
-    chmod 0444 /sys/devices/platform/soc/11c22000.i2c/i2c-2/2-0038/fts_gesture_single_tap_pressed
-    chown system system /sys/devices/platform/soc/11c22000.i2c/i2c-2/2-0038/fts_gesture_fod_pressed
-    chmod 0444 /sys/devices/platform/soc/11c22000.i2c/i2c-2/2-0038/fts_gesture_fod_pressed
-#endif /* NT_EDIT */
-
 # -----------------------
 # Add by MTK
     # SCP log
@@ -293,15 +271,6 @@ on post-fs-data
     chown root system /sys/class/misc/adsp_0/log_enable
     chmod 0660 /sys/class/misc/adsp_1/log_enable
     chown root system /sys/class/misc/adsp_1/log_enable
-    chmod 0660 /dev/adsp
-    chown root media /dev/adsp
-    chmod 0440 /dev/adsp_0
-    chown system media /dev/adsp_0
-    chmod 0440 /dev/adsp_1
-    chown system media /dev/adsp_1
-
-    chmod 0660 /dev/adsp_in_scp
-    chown root media /dev/adsp_in_scp
 
     # SSPM log
     chmod 0620 /sys/class/misc/sspm/sspm_mobile_log
@@ -386,11 +355,6 @@ on post-fs-data
     chown system system /dev/goodix_fp
     chmod 0660 /dev/goodix_fp
 
-    chmod 666 /sys/panel_feature/ui_status
-    chown system system /sys/panel_feature/ui_status
-
-    chmod 666 /sys/devices/platform/soc/1401a000.dsi0/hbm
-
     #v4l2 codec
     chmod 0660 /dev/vcu
     chown media system /dev/vcu
@@ -417,6 +381,10 @@ on post-fs-data
     # PMIC property
     chown radio system /sys/devices/platform/mt-pmic/low_battery_protect_stop
     chown radio system /sys/devices/platform/mt-pmic/low_battery_protect_ut
+
+    #MDDB
+    mkdir /data/vendor_de/meta 0770 system system
+    mkdir /data/vendor_de/meta/mddb 0770 system system
 
     chown system /sys/devices/platform/msensor/driver/cpsopmode
     chown system /sys/devices/platform/msensor/driver/cpsreptxy
@@ -472,6 +440,12 @@ on post-fs-data
     chmod 0660 /dev/graphics/fb0
     chown system graphics /dev/graphics/fb0
 
+    #USD: add lcm node by you.tan 20251103 start
+    chmod 0666 /sys/kernel/tran_display/lcm_dimming_state
+    chmod 0666 /sys/kernel/tran_display/lcm_low_backlight
+    chmod 0666 /sys/kernel/tran_display/lcm_node
+    #USD: add lcm node by you.tan 20251103 end
+
     chmod 0660 /dev/mtk_disp_mgr
     chown system graphics /dev/mtk_disp_mgr
 
@@ -480,6 +454,8 @@ on post-fs-data
 
     chmod 0660 /dev/sw_sync
     chown system graphics /dev/sw_sync
+    #add lcm_dimming_state 20250930 qian.wu3
+    chmod 0666 /sys/kernel/tran_display/lcm_dimming_state
 
     # EM baseband file
     chown root diag /vendor/bin/baseband_regdump
@@ -619,6 +595,51 @@ on post-fs-data
     chown system camera /sys/kernel/debug/mtk_cam_dbg/2/ctrl
     chown system camera /proc/c2ps/c2ps_ioctl
 
+#ITD:add flashlight by isp team 20241010 start
+    chmod 0666 /sys/devices/virtual/torch/torch/torch_level
+    chmod 0666 /sys/devices/virtual/sub_torch/sub_torch/sub_torch_level
+    chmod 0666 /sys/devices/virtual/flashlight_core/flashlight/flashlight_fault
+#ITD:add flashlight by isp team 20241010 end
+#ITD:add fakesensor by isp team 20241102 start
+    chown root root /sys/class/main2_light/main2_light/main2_light
+    chmod 0666 /sys/class/main2_light/main2_light/main2_light
+#ITD:add fakesensro by isp team 20241102 end
+#ITD:add  by hao.ding for add cam 3rd function 20220606 start
+    #DualCam
+    mkdir /data/vendor/multicam  0777 system system
+    mkdir /data/vendor/multicam/dualcam  0777 system system
+    mkdir /mnt/vendor/persist/multicam  0777 system system
+    mkdir /mnt/vendor/persist/multicam/dualcam  0777 system system
+    #tranSAT
+    mkdir /data/vendor/multicam/sat 0777 system system
+    mkdir /mnt/vendor/persist/multicam/sat  0777 system system
+    #fusion
+    mkdir /data/vendor/multicam/fusion 0777 system system
+    #ITD:modify for tzcam cache raw by chunduan.zou 20240911 start
+    #camera cache
+    mkdir /data/vendor/tzcam_cache 0777 system system
+    #ITD:modify for tzcam cache raw by chunduan.zou 20240911 end
+    #watermark 2.0
+    mkdir /data/vendor/camera_watermark 0777 system system
+    #MEG-HUMANEFFECT
+    mkdir /data/vendor/meghumaneffect 0777 system system
+    mkdir /data/vendor/meg_working_dir 0777 system system
+    mkdir /data/vendor/meg_working_dir/anc_fullhdr 0777 system system
+#ITD:add  by hao.ding for add cam 3rd function 20220606 end
+
+#ITD:modify for tzservice cap state & jpeg by bingfeng.li 20250925 start
+mkdir /data/vendor/cam_tzs_cap_jpeg_state 0777 system system
+mkdir /data/vendor/cam_tzs_cap_jpeg 0777 system system
+#ITD:modify for tzservice cap state & jpeg by bingfeng.li 20250925 end
+    #ITD:add Portrait Architecture by ye.li5 20241231 start
+    mkdir /data/vendor/camera_portrait 0777 system system
+    #ITD:add Portrait Architecture by ye.li5 20241231 end
+    #preisp
+    #ITD:Modify PreIsp by lei.ni start
+    chmod 0666 /dev/commdev
+    chown root root /dev/commdev
+    mkdir /data/vendor/tetras 0777 system system
+    #ITD:Modify PreIsp by lei.ni end
     #APU
     chmod 0644 /dev/apuext
 
@@ -770,6 +791,7 @@ on early-boot
 on boot
     write /proc/bootprof "INIT:boot"
 
+    write /proc/sys/vm/dirty_writeback_centisecs 300
     chmod 0660 /sys/power/autosleep
 
     chown system system /sys/devices/system/cpu/cpufreq/hotplug/cpu_num_base
@@ -797,60 +819,6 @@ on boot
     chown system system /sys/class/leds/red/trigger
     chown system system /sys/class/leds/green/trigger
     chown system system /sys/class/leds/blue/trigger
-
-    # add for aac richtap vibration BEE-47
-    chmod 0666 /dev/aac_richtap
-    chown system system /dev/aac_richtap
-    #chmod 0666 /sys/class/leds/vibrator_nt/enalbe
-    #chown system system /sys/class/leds/vibrator_nt/enalbe
-    chmod 0666 /sys/class/leds/vibrator_nt/activate
-    chown system system /sys/class/leds/vibrator_nt/activate
-    chmod 0666 /sys/class/leds/vibrator_nt/brightness
-    chown system system /sys/class/leds/vibrator_nt5f/brightness
-    chmod 0666 /sys/class/leds/vibrator_nt/duration
-    chown system system /sys/class/leds/vibrator_nt/duration
-    chmod 0666 /sys/class/leds/vibrator_nt/f0
-    chown system system /sys/class/leds/vibrator_nt/f0
-    chmod 0666 /sys/class/leds/vibrator_nt/f0_save
-    chown system system /sys/class/leds/vibrator_nt/f0_save
-    chmod 0666 /sys/class/leds/vibrator_nt/ram_cali
-    chown system system /sys/class/leds/vibrator_nt/ram_cali
-    chmod 0666 /sys/class/leds/vibrator_nt/ram_save
-    chown system system /sys/class/leds/vibrator_nt/ram_save
-    chmod 0666 /sys/class/leds/vibrator_nt/cali
-    chown system system /sys/class/leds/vibrator_nt/calicali
-    chmod 0666 /sys/class/leds/vibrator_nt/index
-    chown system system /sys/class/leds/vibrator_nt/index
-    chmod 0666 /sys/class/leds/vibrator_nt/reset
-    chown system system /sys/class/leds/vibrator_nt/reset
-    chmod 0666 /sys/class/leds/vibrator_nt/reg
-    chown system system /sys/class/leds/vibrator_nt/reg
-    chmod 0666 /sys/class/leds/vibrator_nt/vmax
-    chown system system /sys/class/leds/vibrator_nt/vmax
-    chmod 0666 /sys/class/leds/vibrator_nt/gain
-    chown system system /sys/class/leds/vibrator_nt/gain
-    chmod 0666 /sys/class/leds/vibrator_nt/rtp
-    chown system system /sys/class/leds/vibrator_nt/rtp
-    chmod 0666 /sys/class/leds/vibrator_nt/playlist
-    chown system system /sys/class/leds/vibrator_nt/playlist
-    chmod 0666 /sys/class/leds/vibrator_nt/waveform
-    chown system system /sys/class/leds/vibrator_nt/waveform
-    chmod 0666 /sys/class/leds/vibrator_nt/play
-    chown system system /sys/class/leds/vibrator_nt/play
-    chmod 0666 /sys/class/leds/vibrator_nt/stream_start
-    chown system system /sys/class/leds/vibrator_nt/stream_start
-    chmod 0666 /sys/class/leds/vibrator_nt/stream_data
-    chown system system /sys/class/leds/vibrator_nt/stream_data
-    chmod 0666 /sys/class/leds/vibrator_nt/vbat
-    chown system system /sys/class/leds/vibrator_nt/vbat
-    chmod 0666 /sys/class/leds/vibrator_nt/lra_resistance
-    chown system system /sys/class/leds/vibrator_nt/lra_resistance
-    chmod 0666 /sys/class/leds/vibrator_nt/state
-    chown system system /sys/class/leds/vibrator_nt/state
-    chmod 0666 /sys/class/leds/vibrator_nt/seq
-    chown system system /sys/class/leds/vibrator_nt/seq
-    chmod 0666 /sys/class/leds/vibrator_nt/loop
-    chown system system /sys/class/leds/vibrator_nt/loop
 
     # gauge symbolic
     symlink /sys/devices/platform/soc/11280000.i2c/i2c-5/5-0034/11280000.i2c:mt6375@34:mtk-gauge /dev/gauge
@@ -994,56 +962,6 @@ on boot
     chown root radio /proc/net/netfilter/nfnetlink_log
     chown root radio /proc/net/netfilter/nfnetlink_queue
 
-# #ifdef NT_EDIT
-#charger
-    chown system system /proc/charger/charge_pump_enable
-    chown system system /proc/charger/is_aging_test
-    chown system system /proc/charger/nt_abnormal_status
-    chown system system /proc/charger/nt_data
-    chown system system /proc/charger/usb_charger_en
-    chown system system /proc/charger/usb_real_type
-    chown system system /proc/charger/voltage_adc
-    chown system system /proc/charger/usb/temp
-    chown system system	/proc/charger/typec_cc_orientation
-    chown system system	/proc/charger/scenario_fcc
-    chown system system	/proc/charger/ship_mode
-    chown system system	/proc/charger/real_soc
-    chown system system /proc/charger/nt_otg_enable
-    chown system system /proc/charger/chg_data_id
-    chown system system /proc/charger/usb_temp
-    chown system system /sys/class/power_supply/mtk-master-charger/voltage_max
-    chown system system /proc/charger/camera_on
-    chown system system /proc/charger/nt_qmax
-    chown system system /proc/charger/nt_quse
-    chown system system /proc/charger/nt_resistance
-    chown system system /proc/charger/maxchargingcurrent
-    chown system system /proc/charger/maxchargingvoltage
-    chown system system /proc/charger/ibus_now
-    chmod 0666 /proc/charger/charge_pump_enable
-    chmod 0666 /proc/charger/is_aging_test
-    chmod 0666 /proc/charger/nt_abnormal_status
-    chmod 0666 /proc/charger/nt_data
-    chmod 0666 /proc/charger/usb_charger_en
-    chmod 0666 /proc/charger/usb_real_type
-    chmod 0666 /proc/charger/voltage_adc
-    chmod 0666 /proc/charger/usb/temp
-    chmod 0444 /proc/charger/typec_cc_orientation
-    chmod 0666 /proc/charger/scenario_fcc
-    chmod 0666 /proc/charger/ship_mode
-    chmod 0444 /proc/charger/real_soc
-    chmod 0666 /proc/charger/nt_otg_enable
-    chmod 0444 /proc/charger/chg_data_id
-    chmod 0444 /proc/charger/usb_temp
-    chmod 0664  /sys/class/power_supply/mtk-master-charger/voltage_max
-    chmod 0666 /proc/charger/camera_on
-    chmod 0444 /proc/charger/nt_qmax
-    chmod 0444 /proc/charger/nt_quse
-    chmod 0444 /proc/charger/nt_resistance
-    chmod 0444 /proc/charger/maxchargingcurrent
-    chmod 0444 /proc/charger/maxchargingvoltage
-    chmod 0444 /proc/charger/ibus_now
-# #endif /* NT_EDIT */
-
 # WMT proc
     chown shell system /proc/driver/wmt_dbg
     chown shell system /proc/driver/wmt_aee
@@ -1059,23 +977,31 @@ on boot
     chown system radio /dev/ttyGS1
 #Power Manager
     write /sys/power/pm_freeze_timeout 2000
+#vtshell_info
+    chown system /sys/kernel/vtshell/vtshell_info
 
-    # Disable serial console
-    stop console
+on property:vold.decrypt=trigger_reset_main
+    write /proc/bootprof "INIT:vold.decrypt=trigger_reset_main"
+    setprop sys.boot_completed 0
+    setprop dev.bootcomplete 0
 
+on property:vold.decrypt=trigger_post_fs_data
+    write /proc/bootprof "INIT:vold.decrypt=trigger_post_fs_data"
 
-#NT core
-on property:sys.system_server.start_count=1
-    write /sys/devices/virtual/NT/NT_reserve_kernel_log/boot_stage_systemserver 1
+on property:vold.decrypt=trigger_restart_min_framework
+    write /proc/bootprof "INIT:vold.decrypt=trigger_restart_min_framework"
+    start msensord
+    start permission_check
 
-on property:persist.sys.mglru_enable=true
-    write /sys/kernel/mm/lru_gen/enabled y
+on property:vold.decrypt=trigger_restart_framework
+    write /proc/bootprof "INIT:vold.decrypt=trigger_restart_framework"
+    start msensord
+    start permission_check
 
-on property:persist.sys.mglru_enable=false
-    write /sys/kernel/mm/lru_gen/enabled n
-
-on property:persist.sys.mglru_min_ttl_ms=*
-    write /sys/kernel/mm/lru_gen/min_ttl_ms ${persist.sys.mglru_min_ttl_ms}
+on property:vold.decrypt=trigger_shutdown_framework
+    write /proc/bootprof "INIT:vold.decrypt=trigger_shutdown_framework"
+    setprop sys.boot_completed 0
+    setprop dev.bootcomplete 0
 
 # bugreport is triggered by holding down volume down, volume up and power
 service bugreport /system/bin/dumpstate -d -p -B -z \
@@ -1102,19 +1028,48 @@ on property:sys.boot_completed=1
 
     # zram writeback
     setprop persist.sys.zram_enabled 1
-    swapon_all /vendor/etc/fstab.enableswap
+#USD: add for memfusion2_2 by dongyun.liu at 20240927 start
+    # swapon_all /vendor/etc/fstab.enableswap
+#USD: add for memfusion2_2 by dongyun.liu at 20240927 end
 
 on property:sys.boot_completed=1
 
     # stop bootprof
     write /proc/bootprof 0
-    # add for aac richtap vibration AERO-119
-    setprop vendor.haptic.calibrate.done 1
 
+#service dpfd /vendor/bin/dpfd
+#	user root
+#	group system media
 
 #
 #  External Modme control related services
 #
+
+#
+#  Modem related services (Begin)
+#
+##Add by T.Zh for ppp daemon
+#service pppd /system/bin/pppd file /data/misc/ppp/ppp_options
+#    user root
+#    disabled
+#    oneshot
+#
+##
+#
+#  Modem related services (End)
+#
+
+#add for power-off alarm
+#service poad /vendor/bin/poad
+#    class main
+#    user system
+#    group system
+#    oneshot
+
+#service BGW /vendor/xbin/BGW
+#	user system
+#	group gps system radio
+#	class main
 
 # Mount mdota
 on property:ro.boot.slot_suffix=_a
@@ -1124,6 +1079,20 @@ on property:ro.boot.slot_suffix=_a
 on property:ro.boot.slot_suffix=_b
     # Set SELinux security contexts on upgrade or policy update.
     mount ext4 /dev/block/by-name/mcf_ota_b /mnt/vendor/mdota ro wait noatime
+
+# Battery info
+on property:persist.vendor.mediatek.fg.disable=1
+    write /dev/gauge/FG_daemon_disable 1
+
+on property:persist.vendor.mediatek.fg.force25c=1
+    write /dev/gauge/Battery_Temperature 25
+
+
+on property:persist.vendor.mediatek.fg.force25c=0
+    write /dev/gauge/Battery_Temperature 65535
+
+on property:persist.vendor.mediatek.fg.log.enable=1
+    write /dev/gauge/FG_daemon_log_level 7
 
 # add meta_tst for ATM
 service meta_tst /vendor/bin/meta_tst
@@ -1153,44 +1122,52 @@ on property:sys.boot_completed=1 && property:ro.boot.atm=enable
 on property:vendor.mtk.md1.status=reset
     setprop persist.vendor.atm.mdmode normal
 
-# Wi-Fi single load for 6631/6637
-service wifi_load_disable_dual_rro /system/bin/cmd -w overlay enable com.android.wifi.disable_dual.resources.overlay
+# MTK fast charging support
+on property:persist.vendor.mediatek.fast_charging.support=*
+    write /sys/devices/platform/charger/fast_chg_indicator ${persist.vendor.mediatek.fast_charging.support}
+
+on property:persist.vendor.mediatek.charger.log.enable=1
+    write /sys/devices/platform/charger/charger_log_level 3
+    write /sys/module/pd_dbg_info/parameters/dbg_log_en 1
+    write /sys/module/mt6375_charger/parameters/dbg_log_en 1
+
+# MSYNC Game
+on boot
+    insmod /vendor/lib/modules/msync2_dms.ko
+on boot
+    insmod /vendor/lib/modules/msync2_frd.ko
+
+#TDD:delete for SUNMAO40-409 by siying.tang 20250709 start
+# VSIM service (vendor OSI)
+# service osi /system/bin/osi
+#     class main
+#     user root
+#     disabled
+#     oneshot
+    #seclabel u:r:osi:s0
+#TDD:delete for SUNMAO40-409 by siying.tang 20250709 end
+
+# USD : add by wangqin.kou 20250325 start
+on property:persist.vendor.tran.wipedata=1 && property:ro.boot.atm=enable
+    tran_factory_reset
+# USD : add by wangqin.kou 20250325 end
+
+#USD: add for memfusion2_2 by dongyun.liu at 20240927 start
+on property:persist.odm.tr_memfusion.swapfile.support=false && property:sys.boot_completed=1
+    swapon_all /vendor/etc/fstab.enableswap
+on property:persist.odm.tr_memfusion.swapfile.support=true && property:ro.odm.tr_memfusion.version22.support=false && property:sys.boot_completed=1
+    swapon_all /vendor/etc/fstab.enableswap
+#USD: add for memfusion2_2 by dongyun.liu at 20240927 end
+
+#USD: add auto set pid  by dongyun.liu 20240821 start
+service mf_nowb_sh /vendor/bin/init.mf_nowb.sh
     class main
     user root
-    group root
-    oneshot
+    group root system
     disabled
-    seclabel u:r:su:s0
-
-service wifi_unload_disable_dual_rro /system/bin/cmd -w overlay disable com.android.wifi.disable_dual.resources.overlay
-    class main
-    user root
-    group root
     oneshot
-    disabled
-    seclabel u:r:su:s0
 
-on property:vendor.connsys.adie.chipid=0x6631
-    # load override RRO
-    write /dev/kmsg "WifiHAL: Load disable_dual RRO"
-    start wifi_load_disable_dual_rro
-
-on property:vendor.connsys.adie.chipid=0x6637
-    # unload override RRO
-    write /dev/kmsg "WifiHAL: Unload disable_dual RRO"
-    start wifi_unload_disable_dual_rro
-
-on property:sys.touch.game_mode.enable=*
-    write /proc/touchpanel/game_mode ${sys.touch.game_mode.enable}
-on property:sys.touch.edge_mode.enable=*
-    write /proc/touchpanel/edge_mode ${sys.touch.edge_mode.enable}
-on property:sys.touch.fod_en.enable=*
-    write /proc/touchpanel/fod_mode ${sys.touch.fod_en.enable}
-on property:vendor.touch.double_tap_to_wake=*
-    write /proc/touchpanel/gesture_mode ${vendor.touch.double_tap_to_wake}
-on property:sys.touch.pocket_mode=*
-    write /proc/touchpanel/pocket_mode ${sys.touch.pocket_mode}
-
-# Force GED smart boost after system is fully up
 on property:sys.boot_completed=1
-    write /sys/module/ged/parameters/ged_smart_boost 1
+    start mf_nowb_sh
+#USD: add auto set pid  by dongyun.liu 20240821 end
+

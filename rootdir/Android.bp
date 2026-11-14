@@ -100,6 +100,27 @@ prebuilt_etc {
 }
 
 prebuilt_etc {
+    name: "init.aee.rc",
+    src: "etc/init.aee.rc",
+    sub_dir: "init/hw",
+    vendor: true
+}
+
+prebuilt_etc {
+    name: "init.pstore.rc",
+    src: "etc/init.pstore.rc",
+    sub_dir: "init/hw",
+    vendor: true
+}
+
+prebuilt_etc {
+    name: "init_conninfra.rc",
+    src: "etc/init_conninfra.rc",
+    sub_dir: "init/hw",
+    vendor: true
+}
+
+prebuilt_etc {
     name: "fstab.mt6878",
     src: "etc/fstab.mt6878",
     vendor: true,

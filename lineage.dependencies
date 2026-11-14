@@ -1,0 +1,20 @@
+[
+  {
+    "remote": "github",
+    "repository": "X6857/device_infinix_X6857-kernel",
+    "target_path": "device/infinix/X6857-kernel",
+    "branch": "bka"
+  },
+  {
+    "remote": "github",
+    "repository": "X6857/vendor_infinix_X6857",
+    "target_path": "vendor/infinix/X6857",
+    "branch": "bka"
+  },
+  {
+    "remote": "github",
+    "repository": "S-O-D-A/android_hardware_mediatek",
+    "target_path": "hardware/mediatek",
+    "branch": "bka"
+  }
+]

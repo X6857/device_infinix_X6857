@@ -9,6 +9,7 @@
 /dev/block/sda                                   0660    root    system
 /dev/block/sdb                                   0660    root    system
 /dev/block/sdc                                   0660    root    system
+/dev/ufs_cdev                                    0660    root    system
 
 # eMMC/UFS common
 /dev/block/by-name/misc2     0660    root    system
@@ -155,6 +156,11 @@
 # group, then they'll only see log entries for their UID.
 /dev/log/ksystem          0600   root       log
 
+/dev/adsp                 0660   root       media
+/dev/adsp_0               0440   system     media
+/dev/adsp_1               0440   system     media
+/dev/audio_ipi            0640   media      media
+/dev/adsp_in_scp          0660   root       media
 /dev/ccci*                0660   radio      radio
 /dev/ttyC*                0660   radio      radio
 /sys/kernel/ccci          modem_info   0644   radio       radio
@@ -244,3 +250,9 @@
 
 #dynamic sensor
 /dev/hidraw*   0660 system system
+
+#USD: Ultrasound sensor bringup by denghang.quan 20250528 start
+#elliptic sensor
+/dev/elliptic0            0644   system     system
+/dev/elliptic1            0644   system     system
+#USD: Ultrasound sensor bringup by denghang.quan 20250528 end

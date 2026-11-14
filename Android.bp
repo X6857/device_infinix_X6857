@@ -6,6 +6,6 @@
 
 soong_namespace {
     imports: [
-        "vendor/nothing/Tetris",
+        "vendor/infinix/X6857",
     ],
 }

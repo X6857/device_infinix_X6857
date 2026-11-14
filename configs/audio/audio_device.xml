@@ -32,10 +32,40 @@
         <path name="receiver_output" value="turnoff">
             <kctl name="RCV Mux" value="Open" />
         </path>
+        <!--USD: add sunmao u vnd bringup by weicheng.liao 20250324 start-->
+        <path name="speaker_2n1_output" value="turnon">
+            <kctl name="Tran_2N1_Speaker_Switch" value="On" />
+        </path>
+        <path name="speaker_2n1_output" value="turnoff">
+            <kctl name="Tran_2N1_Speaker_Switch" value="Off" />
+        </path>
+        <!--set loopback state-->
+        <path name="tran_loopback" value="turnon">
+        </path>
+        <path name="tran_loopback" value="turnoff">
+        </path>
+        <path name="tran_midtest_loopback_speaker" value="turnon">
+           <kctl name="Tran_MidTest_LoopBack_Switch" value="On" />
+        </path>
+        <path name="tran_midtest_loopback_speaker" value="turnoff">
+           <kctl name="Tran_MidTest_LoopBack_Switch" value="Off" />
+        </path>
        <!-- 2-in-1 speaker output-->
         <path name="two_in_one_speaker_output" value="turnon">
         </path>
         <path name="two_in_one_speaker_output" value="turnoff">
+        </path>
+        <!--dual analogPA speaker output-->
+        <path name="dual_speaker_output" value="turnon">
+            <kctl name="DAC In Mux" value="Normal Path" />
+            <!--BSP:modify 'LOL Mux' value CICHSSE-5 yu.xiang5 20220125 start-->
+            <kctl name="LOL Mux" value="Playback" />
+            <!--BSP:modify 'LOL Mux' value CICHSSE-5 yu.xiang5 20220125 end-->
+            <kctl name="RCV Mux" value="Voice Playback" />
+        </path>
+        <path name="dual_speaker_output" value="turnoff">
+            <kctl name="LOL Mux" value="Open" />
+            <kctl name="RCV Mux" value="Open" />
         </path>
        <!--speaker output-->
         <path name="speaker_output" value="turnon">
@@ -45,6 +75,17 @@
         <path name="speaker_output" value="turnoff">
             <kctl name="LOL Mux" value="Open" />
         </path>
+        <!--headhpone dual analogPA speaker output-->
+        <path name="headphoneDualSpeaker_output" value="turnon">
+            <kctl name="DAC In Mux" value="Normal Path" />
+            <kctl name="HPL Mux" value="Loud DualSPK Playback" />
+            <kctl name="HPR Mux" value="Loud DualSPK Playback" />
+        </path>
+        <path name="headphoneDualSpeaker_output" value="turnoff">
+            <kctl name="HPL Mux" value="Open" />
+            <kctl name="HPR Mux" value="Open" />
+        </path>
+        <!--USD: add sunmao u vnd bringup by weicheng.liao 20250324 end-->
         <!--headhpone_speaker output-->
         <path name="headphoneSpeaker_output" value="turnon">
             <kctl name="DAC In Mux" value="Normal Path" />
@@ -1724,6 +1765,55 @@
         <path name="ADDA_TO_CAPTURE5_HDR" value="turnoff">
             <kctl name="UL7_CH1 ADDA_UL_CH1" value="0" />
         </path>
+        <!--USD: add sunmao u vnd bringup by weicheng.liao 20250324 start-->
+        <path name="audiotest_topspk_output" value="turnon">
+            <kctl name="ADDA_DL_CH1 DL1_CH1" value="1" />
+            <kctl name="ADDA_DL_CH2 DL1_CH2" value="1" />
+            <kctl name="DAC In Mux" value="Normal Path" />
+            <kctl name="HPL Mux" value="Audio Playback" />
+            <kctl name="Ext_Speaker_Amp Switch" value="1" />
+            <kctl name="Tran_PA_OPEN" value="1" />
+        </path>
+        <path name="audiotest_topspk_output" value="turnoff">
+            <kctl name="ADDA_DL_CH1 DL1_CH1" value="0" />
+            <kctl name="ADDA_DL_CH2 DL1_CH2" value="0" />
+            <kctl name="Ext_Speaker_Amp Switch" value="0" />
+            <kctl name="Tran_PA_OPEN" value="0" />
+            <kctl name="HPL Mux" value="Open" />
+            <kctl name="HPR Mux" value="Open" />
+        </path>
+        <path name="audiotest_botspk_output" value="turnon">
+            <kctl name="ADDA_DL_CH1 DL1_CH1" value="1" />
+            <kctl name="ADDA_DL_CH2 DL1_CH2" value="1" />
+            <kctl name="DAC In Mux" value="Normal Path" />
+            <kctl name="HPR Mux" value="Audio Playback" />
+            <kctl name="Ext_Speaker_Amp Switch" value="1" />
+            <kctl name="Tran_PA_OPEN" value="1" />
+        </path>
+        <path name="audiotest_botspk_output" value="turnoff">
+            <kctl name="ADDA_DL_CH1 DL1_CH1" value="0" />
+            <kctl name="ADDA_DL_CH2 DL1_CH2" value="0" />
+            <kctl name="Ext_Speaker_Amp Switch" value="0" />
+            <kctl name="Tran_PA_OPEN" value="0" />
+            <kctl name="HPL Mux" value="Open" />
+            <kctl name="HPR Mux" value="Open" />
+        </path>
+        <path name="audiotest_receiver_output" value="turnon">
+            <kctl name="ADDA_DL_CH1 DL1_CH1" value="1" />
+            <kctl name="ADDA_DL_CH2 DL1_CH2" value="1" />
+            <kctl name="DAC In Mux" value="Normal Path" />
+            <kctl name="HPL Mux" value="Audio Playback" />
+            <kctl name="Ext_Speaker_Amp Switch" value="1" />
+            <kctl name="Tran_PA_OPEN" value="1" />
+        </path>
+        <path name="audiotest_receiver_output" value="turnoff">
+            <kctl name="ADDA_DL_CH1 DL1_CH1" value="0" />
+            <kctl name="ADDA_DL_CH2 DL1_CH2" value="0" />
+            <kctl name="Ext_Speaker_Amp Switch" value="0" />
+            <kctl name="Tran_PA_OPEN" value="0" />
+            <kctl name="HPL Mux" value="Open" />
+            <kctl name="HPR Mux" value="Open" />
+        </path>
         <path name="ultrasound-proximity" value="turnon">
         </path>
         <path name="ultrasound-proximity" value="turnoff">
@@ -1733,4 +1823,6 @@
         <path name="ultrasound-proximity-speaker" value="turnoff">
         </path>
     </mixercontrol>
+    <outputdevice name="AUDIO_TYPEC_TEST" path="1" />
+    <!--USD: add sunmao u vnd bringup by weicheng.liao 20250324 end-->
 </root>

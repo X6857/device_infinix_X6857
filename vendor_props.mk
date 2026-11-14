@@ -34,10 +34,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
     persist.vendor.audio.usb.offload=true \
     persist.vendor.debug_policy.ready=1 \
     persist.vendor.debug_policy=minidump \
-    persist.vendor.newdirac.cur.config=MUSIC \
-    persist.vendor.newdirac.dump=0 \
-    persist.vendor.newdirac.enable.value=1.000000 \
-    persist.vendor.newdirac.volume.value=0.000000 \
     ro.bluetooth.a2dp_offload.supported=true \
     ro.bluetooth.leaudio_offload.supported=false \
     ro.vendor.mtk_audio_tuning_tool_ver=V1 \
@@ -309,7 +305,7 @@ PRODUCT_PROPERTY_OVERRIDES += \
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.vendor.mediatek.platform=MT6878 \
     ro.vendor.mediatek.version.branch=alps-mp-u0.mp1 \
-    ro.vendor.mediatek.version.release=alps-mp-u0.mp1.rc-V6.4_nothing.u0mp1rc.k6989v1.64_P1 \
+    ro.vendor.mediatek.version.release=alps-mp-u0.mp1.rc-V6.4 \
     ro.vendor.mgk_name=mgk_64_k61 \
     ro.vendor.mgvi_name=mgvi_64_64only_ww_armv82 \
     ro.vendor.mml.mtk_mml_support=1
@@ -326,20 +322,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
     ro.vendor.mtk_nn_quant_preferred=1 \
     ro.vendor.mtk_nn_support=1 \
     ro.vendor.mtk_ovl_bringup=0
-
-# Nothing
-PRODUCT_PROPERTY_OVERRIDES += \
-    ro.vendor.nothing.feature.base=0x28124a040124b4247b97ffL \
-    ro.vendor.nothing.feature.diff.device.Pacman=0x890493f4d20258c42080L \
-    ro.vendor.nothing.feature.diff.device.PacmanPro=0x289b493f4d20258c42080L \
-    ro.vendor.nothing.feature.diff.device.Pong=0x20044a404803d1842000L \
-    ro.vendor.nothing.feature.diff.device.Spacewar=0x20042a0041a032c34000L \
-    ro.vendor.nothing.feature.diff.device.Tetris=0x2cf3b13f4f22258c401c0L \
-    ro.vendor.nothing.feature.diff.product.Pong=0x0 \
-    ro.vendor.nothing.feature.diff.product.PongEEA=0x0 \
-    ro.vendor.nothing.feature.diff.product.PongIND=0x0 \
-    ro.vendor.nothing.feature.diff.product.Spacewar=0x0 \
-    ro.vendor.nothing.feature.diff.product.SpacewarEEA=0x0
 
 # PQ
 PRODUCT_PROPERTY_OVERRIDES += \
@@ -698,5 +680,4 @@ ro.zram.periodic_wb_delay_hours=24
 
 # Fingerprint
 PRODUCT_PROPERTY_OVERRIDES += \
-    ro.vendor.fingerprint.type=udfps_optical \
-    ro.vendor.fingerprint.sensor_location=540|2109|93
+    ro.vendor.fingerprint.type=side

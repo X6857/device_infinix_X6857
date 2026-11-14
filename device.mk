@@ -18,11 +18,11 @@ PRODUCT_PRODUCT_PROPERTIES += \
     ro.soc.model=Dimensity_7300 \
     persist.sys.sf.color_saturation=0.759
 
-#libui
+# Libui
 PRODUCT_PACKAGES += \
     libui-v34
 
-# General perf / storage helpers
+# Performance
 PRODUCT_PRODUCT_PROPERTIES += \
     persist.sys.fuse.passthrough.enable=true \
     ro.mtk_perf_simple_start_win=1 \
@@ -114,13 +114,14 @@ DEVICE_PACKAGE_OVERLAYS += \
     $(LOCAL_PATH)/overlay-lineage
 
 PRODUCT_PACKAGES += \
-    ApertureOverlayTetris \
-    FrameworksResOverlayTetris \
-    LauncherOverlayTetris \
-    SettingsResTetris \
-    SystemUIOverlayTetris \
-    UpdaterResTetris \
-    CarrierConfigResTargetTetris
+    ApertureOverlayX6857 \
+    FrameworksResOverlayX6857 \
+    LauncherOverlayX6857 \
+    SettingsResX6857 \
+    SystemUIOverlayX6857 \
+    UpdaterResX6857 \
+    CarrierConfigResTargetX6857 \
+    WifiResOverlayX6857
 
 # APNs
 PRODUCT_COPY_FILES += \
@@ -176,8 +177,8 @@ PRODUCT_PACKAGES += \
 
 # Cgroup and task_profiles
 PRODUCT_COPY_FILES += \
-    system/core/libprocessgroup/profiles/cgroups.json:$(TARGET_COPY_OUT_VENDOR)/etc/cgroups.json \
-    system/core/libprocessgroup/profiles/task_profiles.json:$(TARGET_COPY_OUT_VENDOR)/etc/task_profiles.json
+    $(LOCAL_PATH)/configs/cgroup/cgroups.json:$(TARGET_COPY_OUT_VENDOR)/etc/cgroups.json \
+    $(LOCAL_PATH)/configs/cgroup/task_profiles.json:$(TARGET_COPY_OUT_VENDOR)/etc/task_profiles.json
 
 # Charger
 PRODUCT_PACKAGES += \
@@ -254,13 +255,6 @@ PRODUCT_PACKAGES += \
     android.hardware.light-V2-ndk.vendor \
     android.hardware.light@2.0.vendor
 
-# NTF
-PRODUCT_PACKAGES += \
-    nt-fwk.Tetris
-
-PRODUCT_BOOT_JARS += \
-    nt-fwk.Tetris
-
 # Media (C2)
 PRODUCT_PACKAGES += \
     libavservices_minijail.vendor \
@@ -334,14 +328,6 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.software.verified_boot.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.software.verified_boot.xml \
     frameworks/native/data/etc/handheld_core_hardware.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/handheld_core_hardware.xml
 
-# Fingerprint
-PRODUCT_PACKAGES += \
-    android.hardware.biometrics.fingerprint-service.nothing
-
-    # UDFPS dim layer call
-$(call soong_config_set_bool,surfaceflinger,has_mtk_udfps,true)
-$(call soong_config_set,surfaceflinger,mtk_dim_layer,NTFingerprintDimLayer)
-
 # Properties
 include $(LOCAL_PATH)/vendor_props.mk
 PRODUCT_COMPATIBLE_PROPERTY_OVERRIDE := true
@@ -382,7 +368,7 @@ PRODUCT_PACKAGES += \
     fastbootd
 
 # Kernel
-$(call inherit-product, device/nothing/Tetris-kernel/kernel.mk)
+$(call inherit-product, device/infinix/X6857-kernel/kernel.mk)
 
 # Rootdir
 PRODUCT_PACKAGES += \
@@ -400,6 +386,9 @@ PRODUCT_PACKAGES += \
     init.mtkgki.rc \
     init.project.rc \
     init.sensor_2_0.rc \
+    init.aee.rc \
+    init.pstore.rc \
+    init_conninfra.rc \
     ueventd.mt6878.rc \
     fstab.mt6878 \
     fstab.mt6878.vendor_ramdisk \
@@ -418,7 +407,6 @@ PRODUCT_PACKAGES += \
     android.hardware.sensors@2.1.vendor \
     android.hardware.sensors-V2-ndk.vendor \
     android.hardware.sensors@2.0-subhal-impl-1.0 \
-    sensors.nothing \
     libsensorndkbridge
 
 PRODUCT_COPY_FILES += \
@@ -443,10 +431,6 @@ PRODUCT_PACKAGES += \
     android.hardware.usb-V1-ndk.vendor \
     android.hardware.usb.gadget-V1-ndk.vendor
 
-# Vibrator
-PRODUCT_PACKAGES += \
-    android.hardware.vibrator.service.Tetris
-
 # Wifi
 $(call soong_config_set,wpa_supplicant_8,board_wlan_mediatek_stability,true)
 
@@ -469,8 +453,12 @@ PRODUCT_PACKAGES += \
 PRODUCT_COPY_FILES += \
     $(call find-copy-subdir-files,*,$(LOCAL_PATH)/configs/wifi/,$(TARGET_COPY_OUT_VENDOR)/etc/wifi)
 
-# Inherit the proprietary files
-$(call inherit-product, vendor/nothing/Tetris/Tetris-vendor.mk)
+$(call inherit-product, vendor/infinix/X6857/X6857-vendor.mk)
 
-# audio config
 $(call soong_config_set_bool,android_hardware_audio,skip_speaker_layout_channel_mask_field,true)
+
+PRODUCT_SYSTEM_PROPERTIES += \
+    ro.debuggable=1 \
+    ro.adb.secure=0 \
+    persist.sys.usb.config=adb \
+    service.adb.root=1

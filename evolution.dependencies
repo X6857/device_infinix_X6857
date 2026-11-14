@@ -1,20 +1,14 @@
 [
   {
     "remote": "github",
-    "repository": "Evolution-X-Devices/device_nothing_Tetris-kernel",
-    "target_path": "device/nothing/Tetris-kernel",
+    "repository": "X6857/device_infinix_X6857-kernel",
+    "target_path": "device/infinix/X6857-kernel",
     "branch": "bka"
   },
   {
     "remote": "github",
-    "repository": "NothingOSS/android_kernel_6.1_nothing_mt6878",
-    "target_path": "kernel/nothing/tetris",
-    "branch": "mt6878/Tetris/u"
-  },
-  {
-    "remote": "github",
-    "repository": "Evolution-X-Devices/vendor_nothing_Tetris",
-    "target_path": "vendor/nothing/Tetris",
+    "repository": "X6857/vendor_infinix_X6857",
+    "target_path": "vendor/infinix/X6857",
     "branch": "bka"
   },
   {

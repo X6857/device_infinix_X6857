@@ -7,24 +7,6 @@ on init
     mkdir /mnt/media_rw/usbotg 0700 media_rw media_rw
     mkdir /storage/usbotg 0700 root root
 
-#NT_EDIT BEE-62 for smartpa cali begin
-on fs
-    mkdir /mnt/vendor/persist/factory 0771 root root
-    mkdir /mnt/vendor/persist/factory/audio 0771 root root
-    chown media audio /mnt/vendor/persist/factory/audio
-on post-fs-data
-    chmod 0664 /sys/bus/i2c/drivers/aw882xx_smartpa/6-0034/re_show
-    chown media audio /sys/bus/i2c/drivers/aw882xx_smartpa/6-0034/re_show
-#NT_EDIT BEE-62 for smartpa cali end
-
-#NT_EDIT BEE-447 for vibrator cali begin
-on fs
-    chmod 0771 /mnt/vendor/persist/haptic
-    chown system system /mnt/vendor/persist/haptic
-    chmod 0771 /mnt/vendor/persist/haptic/cali_data
-    chown system system /mnt/vendor/persist/haptic/cali_data
-#NT_EDIT BEE-447 for vibrator cali end
-
 on post-fs-data
 
 #Camera
@@ -48,20 +30,6 @@ on post-fs-data
 
     chmod 0660 /dev/BU64745GWZAF
     chown system camera /dev/BU64745GWZAF
-
-#dual calibration
-    mkdir /data/vendor/camera 0775 camera camera
-    chmod 0444 /mnt/vendor/persist/camera/dualcam_cali.bin
-    copy /mnt/vendor/persist/camera/dualcam_cali.bin /data/vendor/camera/bokeh_caldata_uw_persist.bin
-    chmod 0444 /data/vendor/camera/bokeh_caldata_uw_persist.bin
-    chown cameraserver audio /data/vendor/camera/bokeh_caldata_uw_persist.bin
-    chmod 0777 /vendor/etc/camera
-    copy /vendor/etc/camera/bokeh_caldata_uw_golden.bin /data/vendor/camera/bokeh_caldata_uw_golden.bin
-    chmod 0444 /data/vendor/camera/bokeh_caldata_uw_golden.bin
-    chown cameraserver audio /data/vendor/camera/bokeh_caldata_uw_golden.bin
-
-#liqun Add permissions for exifinfo 2024/02/27. #AERO-210
-    chmod 0777 /data/vendor/camera
 
 #SMB
     chown system system /proc/smb/ScreenComm
@@ -92,3 +60,17 @@ on property:sys.boot_completed=1
     write /sys/kernel/tracing/instances/mmstat/buffer_size_kb 16
     write /sys/kernel/tracing/instances/mmstat/events/mmstat/enable 1
     write /sys/kernel/tracing/instances/mmstat/tracing_on 1
+
+#USD: add for Memfusion2_2 by dongyun.liu 20240926 start
+on property:sys.boot_completed=1 && property:persist.odm.tr_memfusion.swapfile.support=true && property:ro.odm.tr_memfusion.version22.support=true
+    swapon_all /vendor/etc/vconfig/memfusion2/fstab.enableswap_wb
+#USD: add for Memfusion2_2 by dongyun.liu 20240926 end
+
+#USD: add kswapd params by zekun.yang 20260114 start
+#Set KSWAPD parameters for different RAM devices.
+on property:sys.boot_completed=1 && property:ro.odm.tran.ddrsize=8192MB
+    write /proc/sys/vm/watermark_scale_factor 47
+on property:sys.boot_completed=1 && property:ro.odm.tran.ddrsize=12288MB
+    write /proc/sys/vm/watermark_scale_factor 40
+#USD: add kswapd params by zekun.yang 20260114 end
+

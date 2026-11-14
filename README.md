@@ -1,21 +1,15 @@
-# Device configuration for CMF Phone 1
+# Device configuration for Infinix Note 50x 5G (X6857 / X6857B)
 
-The CMF Phone 1 (codenamed _"Tetris"_) is a budget/mid-range smartphone from CMF by Nothing.
-
-It was released in July 2024.
+The Infinix Note 50x 5G (codenamed _"X6857"_) is a smartphone from Infinix.
 
 ## Device specifications
 
 Basic | Spec Sheet
 -------:|:-------------------------
-Platform | MediaTek Dimensity 7300 (MT6878)
-RAM & Storage | 6GB/128GB, 8GB/128GB, 8GB/256GB
-Shipped Android Version | 14
-Battery | Non-removable, 5000 mAh
-Display | 6.67″, 120Hz, 2400x1080
-Rear camera | 50MP Sony main camera, 2MP depth/portrait sensor
-Front camera | 16MP punch-hole camera
-
-## Device picture
-
-![CMF Phone 1](https://cdn.shopify.com/s/files/1/0376/5420/0459/files/0000s_0060_CMF-Phone-1-Lightgreen.png?v=1753438030 "CMF Phone 1 in Light Green")
+Platform | MediaTek Dimensity 7300 Ultimate (MT6878)
+RAM & Storage | 6GB / 8GB RAM, 128GB / 256GB UFS
+Fingerprint | Capacitive Side-Mounted Fingerprint
+Display | 6.67″ IPS LCD, 120Hz
+Battery | 5500 mAh, 45W Fast Charging
+Camera | 50 MP Main Camera + AI lens, 8 MP Front
+Android Base | Android 15 (Kernel GKI 6.1)
